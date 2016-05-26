@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+
+# This is a CLI client for the foot product line API servers, both for
+# general utility and as a demonstration of using the API client.
+
+import os
+
+DEFAULT_BASE_URI = 'https://nike-engineering-api-server.herokuapp.com'
+AXIES = {
+    'x': [1.0, 0.0, 0.0],
+    'y': [0.0, 1.0, 0.0],
+    'z': [0.0, 0.0, 1.0],
+    '-x': [-1.0, 0.0, 0.0],
+    '-y': [0.0, -1.0, 0.0],
+    '-z': [0.0, 0.0, -1.0],
+}
+
+def main():
+    import argparse
+    from bodylabs_api.foot import FootClient
+
+    parser = argparse.ArgumentParser(description='Interact with the Bodylabs foot scan processing API')
+    parser.subs = parser.add_subparsers(help='sub-command help', dest='command')
+    parser.add_argument('--base_uri', type=str, default=DEFAULT_BASE_URI, help='API server base URI')
+    parser.add_argument('--access_key', type=str, help='API server access key')
+    parser.add_argument('--secret', type=str, help='API server secret')
+
+    subparsers = {}
+    subparsers['verify'] = parser.subs.add_parser('verify', help='Verify credentials')
+    subparsers['upload'] = parser.subs.add_parser('upload', help='Upload and process a scan')
+    subparsers['get'] = parser.subs.add_parser('get', help='Download a result')
+
+    subparsers['upload'].add_argument('scan_path', type=str, help='Path to the foot scan')
+    subparsers['upload'].add_argument('--side', default='right', choices=['right', 'left'], type=str, help='Which foot')
+    subparsers['upload'].add_argument('--units', default='cm', type=str, help='Units scan is measured in')
+    subparsers['upload'].add_argument('--up', default='y', choices=AXIES.keys(), type=str, help='which axis is up')
+    subparsers['upload'].add_argument('--look', default='z', choices=AXIES.keys(), type=str, help='which axis are the toes pointing along')
+
+    subparsers['get'].add_argument('what', type=str, choices=['input', 'scan', 'measurements', 'curves', 'alignment', 'normalized_scan'], help='What to download')
+    subparsers['get'].add_argument('input_id', type=str, help='Input ID to download from')
+    subparsers['get'].add_argument('-o', '--output', default=None, type=str, help='Output path for the result, defaults to current directory')
+
+    args = parser.parse_args()
+
+    client = FootClient(args.base_uri, args.access_key, args.secret)
+
+    if args.command == 'verify':
+        if client.verify_account():
+            print "Login ok"
+        else:
+            print "Login FAILED"
+    elif args.command == 'upload':
+        foot_parameters = {
+            'side': args.side,
+            'up': AXIES[args.up],
+            'look': AXIES[args.look],
+            'scanUnits': args.units,
+        }
+        input_obj = client.process_scan(args.scan_path, foot_parameters)
+        input_obj.print_description()
+    elif args.command == 'get':
+        input_obj = client.get_input(args.input_id)
+        if args.what == 'input':
+            input_obj.print_description()
+        elif args.what == 'scan':
+            if args.output:
+                output_path = args.output
+            else:
+                output_path = 'input_scan' + os.path.splitext(input_obj.files['scan'])[1]
+            input_obj.download_to(output_path)
+        else: # we're downloading an artifact
+            # Note that for these, it would be awesome if we could query the input for artifacts that are already made, rather than creating them anew...
+            if args.what == 'measurements':
+                output_path = args.output or 'measurements.json'
+                artifact = input_obj.measurements
+            elif args.what == 'curves':
+                output_path = args.output or 'curves.json'
+                artifact = input_obj.curves
+            elif args.what == 'alignment':
+                output_path = args.output or 'alignment.obj'
+                artifact = input_obj.alignment
+            elif args.what == 'normalized_scan':
+                output_path = args.output or 'normalized_scan.obj'
+                artifact = input_obj.normalized_scan
+            artifact.print_description()
+            artifact.download_to(output_path)
+
+
+if __name__ == '__main__':
+    main()
