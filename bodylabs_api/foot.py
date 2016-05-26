@@ -1,4 +1,4 @@
-from core import Client, Input
+from bodylabs_api.core import Client, Input
 
 class FootInput(Input):
     def __init__(self, *args, **kwargs):

@@ -268,4 +268,3 @@ class Client(object):
 
     def get_input(self, input_id):
         return self.INPUT_CLASS(self.get('/inputs/{}?target=metadata'.format(input_id)), client=self)
-        
