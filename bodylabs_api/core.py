@@ -76,8 +76,8 @@ class Input(object):
         }
         if self.client.verbose:
             print 'Reqesting {} artifact {} for {}...'.format(service_type, artifact_type, self),
-        artifact_attrs = self.client.post('/artifacts', payload=payload)
-        artifact = self.client.ARTIFACT_CLASS(artifact_attrs, client=self.client, input_obj=self)
+        artifact_attrs = self.client.post('/artifacts', payload)
+        artifact = self.client.ARTIFACT_CLASS(artifact_attrs, client=self.client)
         self.artifacts[artifact.artifact_id] = artifact
         if self.client.verbose:
             print '{}'.format(artifact)
@@ -85,9 +85,8 @@ class Input(object):
 
 
 class Artifact(object):
-    def __init__(self, attrs, client=None, input_obj=None):
+    def __init__(self, attrs, client=None):
         self.client = client
-        self.input_obj = input_obj
         self.update_from(attrs)
 
     def update_from(self, attrs):
