@@ -6,8 +6,6 @@ from bodylabs_api.core import Input, Artifact, Processing, ProcessingFailed #, C
 
 MockResponse = namedtuple('Response', ['status_code'])
 class MockClient(object):
-    INPUT_CLASS = Input
-    ARTIFACT_CLASS = Artifact
     def __init__(self, get_to_file_responses=None, get_responses=None, post_responses=None, verbose=False):
         def make_http_exceptions(x):
             if x in [404, 410]:

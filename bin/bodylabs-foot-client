@@ -16,7 +16,8 @@ AXES = {
 
 def main():
     import argparse
-    from bodylabs_api.foot import FootClient
+    from bodylabs_api.core import Client
+    from bodylabs_api.foot import FootInput
 
     parser = argparse.ArgumentParser(description='Interact with the Bodylabs foot scan processing API')
     parser.add_argument('base_uri', type=str, help='API server base URI')
@@ -41,7 +42,7 @@ def main():
 
     args = parser.parse_args()
 
-    client = FootClient(args.base_uri, args.access_key, args.secret)
+    client = Client(args.base_uri, args.access_key, args.secret)
 
     if args.command == 'verify':
         if client.verify_account():
@@ -55,10 +56,10 @@ def main():
             'look': AXES[args.look],
             'scanUnits': args.units,
         }
-        input_obj = client.process_scan(args.scan_path, foot_parameters)
+        input_obj = FootInput.by_uploading_scan(client, args.scan_path, foot_parameters)
         input_obj.print_description()
     elif args.command == 'get':
-        input_obj = client.get_input(args.input_id)
+        input_obj = FootInput.get_input(client, args.input_id)
         if args.what == 'input':
             input_obj.print_description()
         elif args.what == 'scan':
