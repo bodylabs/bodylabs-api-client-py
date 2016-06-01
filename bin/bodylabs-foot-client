@@ -5,8 +5,7 @@
 
 import os
 
-DEFAULT_BASE_URI = 'https://nike-engineering-api-server.herokuapp.com'
-AXIES = {
+AXES = {
     'x': [1.0, 0.0, 0.0],
     'y': [0.0, 1.0, 0.0],
     'z': [0.0, 0.0, 1.0],
@@ -20,10 +19,10 @@ def main():
     from bodylabs_api.foot import FootClient
 
     parser = argparse.ArgumentParser(description='Interact with the Bodylabs foot scan processing API')
-    parser.subs = parser.add_subparsers(help='sub-command help', dest='command')
-    parser.add_argument('--base_uri', type=str, default=DEFAULT_BASE_URI, help='API server base URI')
+    parser.add_argument('base_uri', type=str, help='API server base URI')
     parser.add_argument('--access_key', type=str, help='API server access key')
     parser.add_argument('--secret', type=str, help='API server secret')
+    parser.subs = parser.add_subparsers(help='sub-command help', dest='command')
 
     subparsers = {}
     subparsers['verify'] = parser.subs.add_parser('verify', help='Verify credentials')
@@ -33,8 +32,8 @@ def main():
     subparsers['upload'].add_argument('scan_path', type=str, help='Path to the foot scan')
     subparsers['upload'].add_argument('--side', default='right', choices=['right', 'left'], type=str, help='Which foot')
     subparsers['upload'].add_argument('--units', default='cm', type=str, help='Units scan is measured in')
-    subparsers['upload'].add_argument('--up', default='y', choices=AXIES.keys(), type=str, help='which axis is up')
-    subparsers['upload'].add_argument('--look', default='z', choices=AXIES.keys(), type=str, help='which axis are the toes pointing along')
+    subparsers['upload'].add_argument('--up', default='y', choices=AXES.keys(), type=str, help='which axis is up')
+    subparsers['upload'].add_argument('--look', default='z', choices=AXES.keys(), type=str, help='which axis are the toes pointing along')
 
     subparsers['get'].add_argument('what', type=str, choices=['input', 'scan', 'measurements', 'curves', 'alignment', 'normalized_scan'], help='What to download')
     subparsers['get'].add_argument('input_id', type=str, help='Input ID to download from')
@@ -52,8 +51,8 @@ def main():
     elif args.command == 'upload':
         foot_parameters = {
             'side': args.side,
-            'up': AXIES[args.up],
-            'look': AXIES[args.look],
+            'up': AXES[args.up],
+            'look': AXES[args.look],
             'scanUnits': args.units,
         }
         input_obj = client.process_scan(args.scan_path, foot_parameters)

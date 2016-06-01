@@ -1,7 +1,7 @@
 bodylabs-api-client-py
 ======================
 
-A basic pyhton client for Body Labs APIs and a command line tool for
+A basic python client for Body Labs APIs and a command line tool for
 interacting with them.
 
 - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ Examples
 --------
 
 The base client in `core.Client` can interact with most Body Labs APIs, but
-spcialized clients make it easier to deal with domain specific work.
+specialized clients make it easier to deal with domain specific work.
 
 ```py
 from bodylabs_api.foot import FootClient

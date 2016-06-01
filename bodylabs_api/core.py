@@ -83,6 +83,17 @@ class Input(object):
             print '{}'.format(artifact)
         return artifact
 
+    def _cached_artifact(self, serviceType, artifactType):
+        '''
+        Allows simple caching artifact accessors to be added to subclasses easily.
+        '''
+        local_name = '_cached_artifact_' + serviceType + '_' + artifactType
+        if not hasattr(self, local_name):
+            setattr(self, local_name, None)
+        if getattr(self, local_name) is None:
+            setattr(self, local_name, self.request_artifact(serviceType, artifactType))
+        return getattr(self, local_name)
+
 
 class Artifact(object):
     def __init__(self, attrs, client=None):
@@ -211,6 +222,8 @@ class Client(object):
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 401:
                 return False
+            else:
+                raise
         return True
 
     def upload(self, path, filename=None, content_type='application/octet-stream'):

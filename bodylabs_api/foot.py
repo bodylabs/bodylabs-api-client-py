@@ -3,34 +3,22 @@ from bodylabs_api.core import Client, Input
 class FootInput(Input):
     def __init__(self, *args, **kwargs):
         super(FootInput, self).__init__(*args, **kwargs)
-        self._measurements_artifact = None
-        self._curves_artifact = None
-        self._alignment_artifact = None
-        self._normalized_scan_artifact = None
 
     @property
     def measurements(self):
-        if self._measurements_artifact is None:
-            self._measurements_artifact = self.request_artifact('footMeasurements', 'valuesJson')
-        return self._measurements_artifact
+        return self._cached_artifact('footMeasurements', 'valuesJson')
 
     @property
     def curves(self):
-        if self._curves_artifact is None:
-            self._curves_artifact = self.request_artifact('footMeasurements', 'curvesJson')
-        return self._curves_artifact
+        return self._cached_artifact('footMeasurements', 'curvesJson')
 
     @property
     def alignment(self):
-        if self._alignment_artifact is None:
-            self._alignment_artifact = self.request_artifact('footAlignment', 'normalizedAlignment')
-        return self._alignment_artifact
+        return self._cached_artifact('footAlignment', 'normalizedAlignment')
 
     @property
     def normalized_scan(self):
-        if self._normalized_scan_artifact is None:
-            self._normalized_scan_artifact = self.request_artifact('footAlignment', 'normalizedScan')
-        return self._normalized_scan_artifact
+        return self._cached_artifact('footAlignment', 'normalizedScan')
 
 
 class FootClient(Client):
