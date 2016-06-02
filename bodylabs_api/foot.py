@@ -1,4 +1,4 @@
-from bodylabs_api.core import Input
+from bodylabs_api.input import Input
 
 class FootInput(Input):
     INPUT_TYPE = 'footScan'

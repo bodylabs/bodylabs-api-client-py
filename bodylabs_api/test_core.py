@@ -2,22 +2,21 @@ import unittest
 from collections import namedtuple
 import mock
 import requests
-from bodylabs_api.core import Input, Artifact, Processing, ProcessingFailed #, Client, Input
+from bodylabs_api.input import Input
+from bodylabs_api.artifact import Artifact
+from bodylabs_api.exceptions import Processing, ProcessingFailed
 
 MockResponse = namedtuple('Response', ['status_code'])
 class MockClient(object):
     def __init__(self, get_to_file_responses=None, get_responses=None, post_responses=None, verbose=False):
-        def make_http_exceptions(x):
-            if x in [404, 410]:
-                return requests.exceptions.HTTPError("HTTPError: {}".format(x), response=MockResponse(status_code=x))
-            else:
-                return x
+        def create_response(status_code):
+            response = MockResponse(status_code=status_code)
+            if status_code in [404, 410]:
+                return requests.exceptions.HTTPError("HTTPError: {}".format(status_code), response=response)
+            return response
+        # get and post return json results; get_to_file only ever gives status codes
         if get_to_file_responses is not None:
-            get_to_file_responses = [make_http_exceptions(x) for x in get_to_file_responses]
-        if get_responses is not None:
-            get_responses = [make_http_exceptions(x) for x in get_responses]
-        if post_responses is not None:
-            post_responses = [make_http_exceptions(x) for x in post_responses]
+            get_to_file_responses = [create_response(x) for x in get_to_file_responses]
         self.verbose = verbose
         self.get_to_file = mock.MagicMock(side_effect=get_to_file_responses)
         self.get = mock.MagicMock(side_effect=get_responses)
@@ -59,7 +58,7 @@ class TestInput(unittest.TestCase):
             self.assertEqual(str(w[-1].message), "Input received extra args from server: fooBar, BAZ")
 
     def test_download_to(self):
-        client = MockClient(get_to_file_responses=[MockResponse(status_code=302)])
+        client = MockClient(get_to_file_responses=[302])
         inp = Input({'inputId': '57470cc080770e0300cc6612'}, client=client)
         inp.download_to('output_path.ext')
         client.get_to_file.assert_called_once_with('/inputs/57470cc080770e0300cc6612?target=contents', 'output_path.ext')
@@ -117,7 +116,7 @@ class TestArtifact(unittest.TestCase):
             self.assertEqual(str(w[-1].message), "Artifact received extra args from server: fooBar, BAZ")
 
     def test_download_to_non_blocking_302(self):
-        client = MockClient(get_to_file_responses=[MockResponse(status_code=302)])
+        client = MockClient(get_to_file_responses=[302])
         a = Artifact({'artifactId': '57470faf80770e0300cc6616'}, client=client)
         a.download_to('output_path.ext', blocking=False)
         client.get_to_file.assert_called_once_with('/artifacts/57470faf80770e0300cc6616?target=contents', 'output_path.ext')
@@ -137,7 +136,7 @@ class TestArtifact(unittest.TestCase):
         client.get_to_file.assert_called_once_with('/artifacts/57470faf80770e0300cc6616?target=contents', 'output_path.ext')
 
     def test_download_to_blocking_3_tries_then_succeeds(self):
-        client = MockClient(get_to_file_responses=[404, 404, MockResponse(status_code=302)])
+        client = MockClient(get_to_file_responses=[404, 404, 302])
         a = Artifact({'artifactId': '57470faf80770e0300cc6616'}, client=client)
         a.download_to('output_path.ext', blocking=True, polling_interval=0.001)
         self.assertEqual(client.get_to_file.mock_calls, [

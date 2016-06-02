@@ -16,7 +16,7 @@ AXES = {
 
 def main():
     import argparse
-    from bodylabs_api.core import Client
+    from bodylabs_api.client import Client
     from bodylabs_api.foot import FootInput
 
     parser = argparse.ArgumentParser(description='Interact with the Bodylabs foot scan processing API')
