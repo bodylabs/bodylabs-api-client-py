@@ -1,6 +1,6 @@
 import os
-import requests
 import urlparse
+import requests
 
 class Client(object):
     def __init__(self, base_uri, access_key, secret, verbose=True):
