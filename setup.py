@@ -17,20 +17,19 @@ import importlib
 from setuptools import setup
 
 setup(
-    name='example',
-    version=importlib.import_module('example').__version__,
+    name='bodylabs_api',
+    version=importlib.import_module('bodylabs_api').__version__,
     author='Body Labs',
-    author_email='___@bodylabs.com',
-    description='___',
+    author_email='alex@bodylabs.com',
+    description='API client for Bodylabs',
     long_description=long_description,
-    url='https://github.com/bodylabs/___',
+    url='https://github.com/bodylabs/bodylabs-api-client-py',
     license='MIT',
     packages=[
-        'example',
-        'example/util',
+        'bodylabs_api',
     ],
     scripts=[
-        'bin/hello',
+        'bin/bodylabs-foot-client',
     ],
     install_requires=install_requires,
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
