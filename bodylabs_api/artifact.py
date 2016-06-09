@@ -31,7 +31,7 @@ class Artifact(object):
         print d + "  Processing time (in seconds): {}".format(self.processing_time_in_seconds)
         print d + "  Notification: {}".format(self.notification)
 
-    def download_to(self, output_path, blocking=True, polling_interval=15):
+    def download_to(self, output_path, blocking=True, polling_interval=15, timeout=600):
         '''
         If blocking=True, this will poll every polling_interval seconds until the artifact is ready or definitively fails.
 
@@ -42,6 +42,7 @@ class Artifact(object):
         import time
         import requests
         from bodylabs_api.exceptions import Processing, ProcessingFailed
+        from bodylabs_api.timeout import Timeout
         if self.client is None:
             raise ValueError("Can not interact with the server without a valid client")
         def _do_download():
@@ -61,13 +62,14 @@ class Artifact(object):
         if blocking:
             # So... in production, instead of polling, you should use push
             # notifications or webhooks.
-            while True:
-                try:
-                    _do_download()
-                    break
-                except Processing:
-                    time.sleep(polling_interval)
-                    continue
+            with Timeout(timeout):
+                while True:
+                    try:
+                        _do_download()
+                        break
+                    except Processing:
+                        time.sleep(polling_interval)
+                        continue
         else:
             _do_download()
         if self.client.verbose:
