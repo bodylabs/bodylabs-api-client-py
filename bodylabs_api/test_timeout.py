@@ -1,5 +1,7 @@
-import unittest, signal, os
-from bodylabs_api.timeout import Timeout, TimeoutError
+import unittest
+import signal
+from bodylabs_api.timeout import Timeout
+from bodylabs_api.timeout import TimeoutError
 
 class TestTimeoutContextManager(unittest.TestCase):
     TEST_KWARGS_LIST = [
