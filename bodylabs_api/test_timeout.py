@@ -14,6 +14,7 @@ class TestTimeoutContextManager(unittest.TestCase):
     ]
 
     TEST_ARGS_LIST = [
+        [None],
         [],
         [5],
         [5, 5],
@@ -21,7 +22,13 @@ class TestTimeoutContextManager(unittest.TestCase):
     ]
 
     @staticmethod
-    def total_seconds(seconds=0, minutes=0, hours=0):
+    def total_seconds(seconds=None, minutes=None, hours=None):
+        if seconds is None:
+            seconds = 0
+        if minutes is None:
+            minutes = 0
+        if hours is None:
+            hours = 0
         return hours * 3600 + minutes * 60 + seconds
 
     def test_timeout_timer_is_set_correctly_with_args(self):
