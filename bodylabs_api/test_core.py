@@ -162,7 +162,6 @@ class TestArtifact(unittest.TestCase):
         self.assertEqual(self.timeout_from_args_and_kwargs(*args, **kwargs), 123456)
 
     def slow_download(self, *args, **kwargs):
-        # simulates timeout by sending SIGALRM to the process.
         from time import sleep
         _ = args, kwargs # For pylint
         sleep(2)
