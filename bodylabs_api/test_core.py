@@ -161,9 +161,10 @@ class TestArtifact(unittest.TestCase):
         args, kwargs = mock_timeout_timer.call_args
         self.assertEqual(self.timeout_from_args_and_kwargs(*args, **kwargs), 123456)
 
-    def simulate_timeout(*args, **kwargs):
+    def simulate_timeout(self, *args, **kwargs):
         # simulates timeout by sending SIGALRM to the process.
-        import signal, os
+        import os
+        import signal
         _ = args, kwargs # For pylint
         os.kill(os.getpid(), signal.SIGALRM)
 
@@ -172,6 +173,7 @@ class TestArtifact(unittest.TestCase):
         # Note: if the TimeoutTimer is replaced and no longer uses signal.alarm,
         # simulate_timeout will stop working, and this test will fail.
         from harrison.timer import TimeoutError
+        _ = mock_get_to_file # For pylint
         client = Client(None, None, None)
         a = Artifact({'artifactId': '57470faf80770e0300cc6616'}, client=client)
         with self.assertRaises(TimeoutError):
