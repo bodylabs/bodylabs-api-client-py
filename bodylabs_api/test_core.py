@@ -169,8 +169,6 @@ class TestArtifact(unittest.TestCase):
 
     @mock.patch('bodylabs_api.client.Client.get_to_file', side_effect=slow_download)
     def test_download_timeout_raises(self, mock_get_to_file):
-        # Note: if the TimeoutTimer is replaced and no longer uses signal.alarm,
-        # simulate_timeout will stop working, and this test will fail.
         from harrison.timer import TimeoutError
         _ = mock_get_to_file # For pylint
         client = Client(None, None, None)
