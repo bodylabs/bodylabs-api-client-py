@@ -161,14 +161,12 @@ class TestArtifact(unittest.TestCase):
         args, kwargs = mock_timeout_timer.call_args
         self.assertEqual(self.timeout_from_args_and_kwargs(*args, **kwargs), 123456)
 
-    def simulate_timeout(self, *args, **kwargs):
+    def slow_download(self, *args, **kwargs):
         # simulates timeout by sending SIGALRM to the process.
-        import os
-        import signal
-        _ = args, kwargs # For pylint
-        os.kill(os.getpid(), signal.SIGALRM)
+        from time import sleep
+        sleep(2)
 
-    @mock.patch('bodylabs_api.client.Client.get_to_file', side_effect=simulate_timeout)
+    @mock.patch('bodylabs_api.client.Client.get_to_file', side_effect=slow_download)
     def test_download_timeout_raises(self, mock_get_to_file):
         # Note: if the TimeoutTimer is replaced and no longer uses signal.alarm,
         # simulate_timeout will stop working, and this test will fail.
@@ -177,4 +175,4 @@ class TestArtifact(unittest.TestCase):
         client = Client(None, None, None)
         a = Artifact({'artifactId': '57470faf80770e0300cc6616'}, client=client)
         with self.assertRaises(TimeoutError):
-            a.download_to('output_path.ext', blocking=True, timeout=600)
+            a.download_to('output_path.ext', blocking=True, timeout=1)
