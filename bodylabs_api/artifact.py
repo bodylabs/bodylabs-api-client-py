@@ -42,7 +42,7 @@ class Artifact(object):
         import time
         import requests
         from bodylabs_api.exceptions import Processing, ProcessingFailed
-        from bodylabs_api.timeout import Timeout
+        from harrison.timer import TimeoutTimer
         if self.client is None:
             raise ValueError("Can not interact with the server without a valid client")
         def _do_download():
@@ -62,7 +62,11 @@ class Artifact(object):
         if blocking:
             # So... in production, instead of polling, you should use push
             # notifications or webhooks.
-            with Timeout(timeout):
+            with TimeoutTimer(
+                desc='Polling artifact {} ({}->{})'.format(
+                    self.artifact_id, self.service_type, self.artifact_type),
+                verbose=self.client.verbose,
+                timeout=timeout):
                 while True:
                     try:
                         _do_download()
