@@ -2,6 +2,7 @@ import unittest
 from collections import namedtuple
 import mock
 import requests
+from bodylabs_api.client import Client
 from bodylabs_api.input import Input
 from bodylabs_api.artifact import Artifact
 from bodylabs_api.exceptions import Processing, ProcessingFailed
@@ -144,3 +145,34 @@ class TestArtifact(unittest.TestCase):
             mock.call('/artifacts/57470faf80770e0300cc6616?target=contents', 'output_path.ext'),
             mock.call('/artifacts/57470faf80770e0300cc6616?target=contents', 'output_path.ext'),
             ])
+
+    @staticmethod
+    def timeout_from_args_and_kwargs(timeout, desc='', verbose=True):
+        _ = (desc, verbose) # for pylint
+        if timeout is None:
+            return 0
+        return timeout
+
+    @mock.patch('harrison.timer.TimeoutTimer')
+    def test_download_timeout_is_set(self, mock_timeout_timer):
+        client = MockClient()
+        a = Artifact({'artifactId': '57470faf80770e0300cc6616'}, client=client)
+        a.download_to('output_path.ext', blocking=True, timeout=123456)
+        args, kwargs = mock_timeout_timer.call_args
+        self.assertEqual(self.timeout_from_args_and_kwargs(*args, **kwargs), 123456)
+
+    def simulate_timeout(*args, **kwargs):
+        # simulates timeout by sending SIGALRM to the process.
+        import signal, os
+        _ = args, kwargs # For pylint
+        os.kill(os.getpid(), signal.SIGALRM)
+
+    @mock.patch('bodylabs_api.client.Client.get_to_file', side_effect=simulate_timeout)
+    def test_download_timeout_raises(self, mock_get_to_file):
+        # Note: if the TimeoutTimer is replaced and no longer uses signal.alarm,
+        # simulate_timeout will stop working, and this test will fail.
+        from harrison.timer import TimeoutError
+        client = Client(None, None, None)
+        a = Artifact({'artifactId': '57470faf80770e0300cc6616'}, client=client)
+        with self.assertRaises(TimeoutError):
+            a.download_to('output_path.ext', blocking=True, timeout=600)
