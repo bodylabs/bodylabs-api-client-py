@@ -164,6 +164,7 @@ class TestArtifact(unittest.TestCase):
     def slow_download(self, *args, **kwargs):
         # simulates timeout by sending SIGALRM to the process.
         from time import sleep
+        _ = args, kwargs # For pylint
         sleep(2)
 
     @mock.patch('bodylabs_api.client.Client.get_to_file', side_effect=slow_download)
