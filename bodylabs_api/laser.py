@@ -13,3 +13,11 @@ class LaserInput(Input):
     @property
     def alignment(self):
         return self._cached_artifact('ScanAlignment', 'finalizedAlignment')
+
+    @property
+    def alignment_t_pose(self):
+        return self._cached_artifact('ScanAlignment', 'finalizedAlignmentTPose')
+
+    @property
+    def alignment_scan_pose(self):
+        return self._cached_artifact('ScanAlignment', 'finalizedAlignmentScanPose')

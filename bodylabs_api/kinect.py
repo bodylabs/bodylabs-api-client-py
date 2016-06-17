@@ -13,3 +13,11 @@ class KinectInput(Input):
     @property
     def alignment(self):
         return self._cached_artifact('KinectAlignment', 'quadAlignment')
+
+    @property
+    def alignment_t_pose(self):
+        return self._cached_artifact('KinectAlignment', 'quadAlignmentTPose')
+
+    @property
+    def alignment_scan_pose(self):
+        return self._cached_artifact('KinectAlignment', 'quadAlignmentScanPose')
