@@ -7,8 +7,16 @@ class LaserInput(Input):
         super(LaserInput, self).__init__(*args, **kwargs)
 
     @property
+    def curves(self):
+        return self._cached_artifact('ScanMeasurements', 'curvesJson')
+
+    @property
     def measurements(self):
         return self._cached_artifact('ScanMeasurements', 'valuesJson')
+
+    @property
+    def measured_mesh(self):
+        return self._cached_artifact('ScanMeasurements', 'measuredMesh')
 
     @property
     def alignment(self):

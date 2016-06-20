@@ -8,16 +8,16 @@ class FootInput(Input):
 
     @property
     def measurements(self):
-        return self._cached_artifact('footMeasurements', 'valuesJson')
+        return self._cached_artifact('FootMeasurements', 'valuesJson')
 
     @property
     def curves(self):
-        return self._cached_artifact('footMeasurements', 'curvesJson')
+        return self._cached_artifact('FootMeasurements', 'curvesJson')
 
     @property
     def alignment(self):
-        return self._cached_artifact('footAlignment', 'normalizedAlignment')
+        return self._cached_artifact('FootAlignment', 'normalizedAlignment')
 
     @property
     def normalized_scan(self):
-        return self._cached_artifact('footAlignment', 'normalizedScan')
+        return self._cached_artifact('FootAlignment', 'normalizedScan')
