@@ -8,6 +8,10 @@ class RealsenseInput(Input):
         return self._cached_artifact('ds4Alignment', 'canonicalAlignment')
 
     @property
+    def curves(self):
+        return self._cached_artifact('ds4Measurements', 'curvesJson')
+
+    @property
     def measurements(self):
         return self._cached_artifact('ds4Measurements', 'valuesJson')
 
@@ -22,5 +26,3 @@ class RealsenseInput(Input):
     @property
     def matched_body_m2m_leg(self):
         return self._cached_artifact('ds4MatchedBody', 'matchInfoJsonM2mLeg')
-
-

@@ -7,8 +7,16 @@ class KinectInput(Input):
         super(KinectInput, self).__init__(*args, **kwargs)
 
     @property
+    def curves(self):
+        return self._cached_artifact('KinectMeasurements', 'curvesJson')
+
+    @property
     def measurements(self):
         return self._cached_artifact('KinectMeasurements', 'valuesJson')
+
+    @property
+    def measured_mesh(self):
+        return self._cached_artifact('KinectMeasurements', 'measuredMesh')
 
     @property
     def alignment(self):
