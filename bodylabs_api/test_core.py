@@ -87,14 +87,14 @@ class TestArtifact(unittest.TestCase):
         response_from_server = {
             'artifactId': '57470faf80770e0300cc6616',
             'inputId': '57470cc080770e0300cc6612',
-            'serviceType': 'footMeasurements',
+            'serviceType': 'FootMeasurements',
             'artifactType': 'curvesJson',
             'status': 'new',
         }
         a = Artifact(response_from_server, client=client)
         self.assertEqual(a.artifact_id, '57470faf80770e0300cc6616')
         self.assertEqual(a.input_id, '57470cc080770e0300cc6612')
-        self.assertEqual(a.service_type, 'footMeasurements')
+        self.assertEqual(a.service_type, 'FootMeasurements')
         self.assertEqual(a.artifact_type, 'curvesJson')
         self.assertEqual(a.status, 'new')
         self.assertIsNone(a.notification)
