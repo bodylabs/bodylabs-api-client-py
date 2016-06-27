@@ -44,7 +44,7 @@ class Artifact(object):
             if download:
                 self.client.get_to_file(self.contents_uri, output_path)
             else:
-                self.client.get_redirect_location(self.contents_uri)
+                return self.client.get_redirect_location(self.contents_uri)
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 raise Processing()
