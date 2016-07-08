@@ -120,7 +120,7 @@ class TestArtifact(unittest.TestCase):
     def test_get_download_uri(self):
         client = MockClient(get_to_file_responses=[302])
         a = Artifact({'artifactId': '57470faf80770e0300cc6616'}, client=client)
-        result = a.get_download_uri()
+        _ = a.get_download_uri()
         client.get_redirect_location.assert_called_once_with('/artifacts/57470faf80770e0300cc6616?target=contents')
 
     def test_download_to_non_blocking_302(self):
