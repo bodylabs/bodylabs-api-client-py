@@ -99,6 +99,8 @@ class Input(object):
             print 'done'
 
     def request_artifact(self, service_type, artifact_type):
+        import requests
+
         if self.client is None:
             raise ValueError("Can not interact with the server without a valid client")
         payload = {
@@ -108,7 +110,12 @@ class Input(object):
         }
         if self.client.verbose:
             print 'Requesting {} artifact {} for {}...'.format(service_type, artifact_type, self),
-        artifact_attrs = self.client.post('/artifacts', payload)
+        try:
+            artifact_attrs = self.client.post('/artifacts', payload)
+        except requests.exceptions.HTTPError as e:
+            print e.response.json()
+            raise
+
         artifact = Artifact(artifact_attrs, client=self.client)
         self.artifacts[artifact.artifact_id] = artifact
         if self.client.verbose:
