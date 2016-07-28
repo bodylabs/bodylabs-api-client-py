@@ -101,7 +101,9 @@ def main():
                 'removePlatform': False,
             },
 
-            'kinect': {},
+            'kinect': {
+                'usedBodyViews': [1, 2, 3, 4],
+            },
             'multisweep': {},
         }
 
