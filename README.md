@@ -40,6 +40,15 @@ measurements = input_obj.measurements
 measurements.download_to('measurements.json')
 ```
 
+Example scripts:
+
+    `$ ./bodylabs-red-client --access_key <key> --secret <secret> https://bodylabs-eng-api-server.herokuapp.com upload --input_type foot --side right test_foot_scan.ply`
+    `$ ./bodylabs-red-client --access_key <key> --secret <secret> https://bodylabs-eng-api-server.herokuapp.com get alignment  --input_type foot xxxxxxxxxxxxxxxxxxxxxxxx`
+
+    `$ ./bodylabs-red-client --access_key <key> --secret <secret> https://bodylabs-eng-api-server.herokuapp.com upload --input_type laser --side male test.obj`
+    `$ ./bodylabs-red-client --access_key <key> --secret <secret> https://bodylabs-eng-api-server.herokuapp.com get alignment --input_type laser xxxxxxxxxxxxxxxxxxxxxxxx`
+
+
 Development
 -----------
 

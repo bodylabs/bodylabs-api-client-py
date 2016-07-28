@@ -56,6 +56,7 @@ class Artifact(object):
                 elif e.response.status_code == 410:
                     raise ProcessingFailed()
                 else:
+                    print e.response.json()
                     raise
         if self.client.verbose:
             print 'Trying to download artifact {}'.format(self),
