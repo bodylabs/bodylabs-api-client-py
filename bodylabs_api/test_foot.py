@@ -29,6 +29,15 @@ class TestFootInput(unittest.TestCase):
         inp = FootInput({'inputId': '57470cc080770e0300cc6612'}, client=None)
         self.assertEqual(inp.alignment, fake_artifact)
         self.assertEqual(inp.alignment, fake_artifact)
+        mock_request_artifact.assert_called_once_with('FootAlignment', 'finalizedAlignment')
+
+    @mock.patch('bodylabs_api.input.Input.request_artifact')
+    def test_foot_input_only_requests_normalized_alignment_once(self, mock_request_artifact):
+        fake_artifact = object() # Doesn't matter what it is, only that we preserve it
+        mock_request_artifact.return_value = fake_artifact
+        inp = FootInput({'inputId': '57470cc080770e0300cc6612'}, client=None)
+        self.assertEqual(inp.normalized_alignment, fake_artifact)
+        self.assertEqual(inp.normalized_alignment, fake_artifact)
         mock_request_artifact.assert_called_once_with('FootAlignment', 'normalizedAlignment')
 
     @mock.patch('bodylabs_api.input.Input.request_artifact')

@@ -18,6 +18,9 @@ def main():
     import argparse
     from bodylabs_api.client import Client
     from bodylabs_api.foot import FootInput
+    from bodylabs_api.laser import LaserInput
+    from bodylabs_api.kinect import KinectInput
+    from bodylabs_api.multi_sweep import MultiSweepInput
 
     parser = argparse.ArgumentParser(description='Interact with the Bodylabs foot scan processing API')
     parser.add_argument('base_uri', type=str, help='API server base URI')
@@ -31,11 +34,30 @@ def main():
     subparsers['get'] = parser.subs.add_parser('get', help='Download a result')
 
     subparsers['upload'].add_argument('scan_path', type=str, help='Path to the foot scan')
-    subparsers['upload'].add_argument('--side', default='right', choices=['right', 'left'], type=str, help='Which foot')
-    subparsers['upload'].add_argument('--units', default='cm', type=str, help='Units scan is measured in')
-    subparsers['upload'].add_argument('--up', default='y', choices=AXES.keys(), type=str, help='which axis is up')
-    subparsers['upload'].add_argument('--look', default='z', choices=AXES.keys(), type=str, help='which axis are the toes pointing along')
+    subparsers['upload'].add_argument('--input_type', type=str, choices=['foot', 'kinect', 'laser', 'multisweep'], help='Input type')
 
+    # common parameter group
+    common_parameters_group = subparsers['upload'].add_argument_group('common', 'common parameters')
+    common_parameters_group.add_argument('--up', default='y', choices=AXES.keys(), type=str, help='which axis is up')
+    common_parameters_group.add_argument('--look', default='z', choices=AXES.keys(), type=str, help='which axis are the toes pointing along')
+
+    # foot
+    foot_parameters_group = subparsers['upload'].add_argument_group('foot', 'foot parameters')
+
+    foot_parameters_group.add_argument('--side', default='right', choices=['right', 'left'], type=str, help='Which foot')
+    foot_parameters_group.add_argument('--units', default='cm', type=str, help='Units scan is measured in')
+
+    # laser
+    laser_parameters_group = subparsers['upload'].add_argument_group('laser', 'laser parameters')
+
+    laser_parameters_group.add_argument('--gender', choices=['male', 'female'], type=str, help='gender of the input')
+    laser_parameters_group.add_argument('--init', default='A', type=str, help='initial pose')
+    laser_parameters_group.add_argument('--hands', default='open', choices=['open', 'close'], type=str, help='hands pose')
+    laser_parameters_group.add_argument('--scan_units', default='m', type=str, help='scan units')
+
+    # kinect & multiweep doesn't have any params right now
+
+    subparsers['get'].add_argument('--input_type', type=str, choices=['foot', 'kinect', 'laser', 'multisweep'], help='Input type')
     subparsers['get'].add_argument('what', type=str, choices=['input', 'scan', 'measurements', 'curves', 'alignment', 'normalized_scan'], help='What to download')
     subparsers['get'].add_argument('input_id', type=str, help='Input ID to download from')
     subparsers['get'].add_argument('-o', '--output', default=None, type=str, help='Output path for the result, defaults to current directory')
@@ -44,22 +66,52 @@ def main():
 
     client = Client(args.base_uri, args.access_key, args.secret)
 
+    input_class = {
+        'foot': FootInput,
+        'laser': LaserInput,
+        'kinect': KinectInput,
+        'multisweep': MultiSweepInput,
+    }
+
     if args.command == 'verify':
         if client.verify_account():
             print "Login ok"
         else:
             print "Login FAILED"
     elif args.command == 'upload':
-        foot_parameters = {
-            'side': args.side,
-            'up': AXES[args.up],
-            'look': AXES[args.look],
-            'scanUnits': args.units,
+
+        parameters_mapping = {
+            'foot': {
+                'side': args.side,
+                'up': AXES[args.up],
+                'look': AXES[args.look],
+                'scanUnits': args.units,
+            },
+
+            'laser': {
+                'gender': args.gender,
+                'init': args.init,
+                'hands': args.hands,
+                'scanUnits': args.scan_units,
+                'up': AXES[args.up],
+                'look': AXES[args.look],
+                'closeFit': True,
+                'cleanScan': True,
+                'refineHead': True,
+                'removePlatform': False,
+            },
+
+            'kinect': {
+                'usedBodyViews': [1, 2, 3, 4],
+            },
+            'multisweep': {},
         }
-        input_obj = FootInput.by_uploading_scan(client, args.scan_path, foot_parameters)
+
+
+        input_obj = input_class[args.input_type].by_uploading_scan(client, args.scan_path, parameters_mapping[args.input_type])
         input_obj.print_description()
     elif args.command == 'get':
-        input_obj = FootInput.get_input(client, args.input_id)
+        input_obj = input_class[args.input_type].get_input(client, args.input_id)
         if args.what == 'input':
             input_obj.print_description()
         elif args.what == 'scan':

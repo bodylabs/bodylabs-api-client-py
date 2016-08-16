@@ -29,7 +29,7 @@ setup(
         'bodylabs_api',
     ],
     scripts=[
-        'bin/bodylabs-foot-client',
+        'bin/bodylabs-red-client',
     ],
     install_requires=install_requires,
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers

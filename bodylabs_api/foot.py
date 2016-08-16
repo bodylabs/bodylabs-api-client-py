@@ -16,6 +16,10 @@ class FootInput(Input):
 
     @property
     def alignment(self):
+        return self._cached_artifact('FootAlignment', 'finalizedAlignment')
+
+    @property
+    def normalized_alignment(self):
         return self._cached_artifact('FootAlignment', 'normalizedAlignment')
 
     @property
