@@ -20,6 +20,7 @@ class MockClient(object):
             get_to_file_responses = [create_response(x) for x in get_to_file_responses]
         self.verbose = verbose
         self.get_to_file = mock.MagicMock(side_effect=get_to_file_responses)
+        self.get_redirect_location = mock.MagicMock(side_effect=get_to_file_responses)
         self.get = mock.MagicMock(side_effect=get_responses)
         self.post = mock.MagicMock(side_effect=post_responses)
 
@@ -115,6 +116,12 @@ class TestArtifact(unittest.TestCase):
             # Verify some things
             self.assertEqual(len(w), 1)
             self.assertEqual(str(w[-1].message), "Artifact received extra args from server: fooBar, BAZ")
+
+    def test_get_download_uri(self):
+        client = MockClient(get_to_file_responses=[302])
+        a = Artifact({'artifactId': '57470faf80770e0300cc6616'}, client=client)
+        _ = a.get_download_uri()
+        client.get_redirect_location.assert_called_once_with('/artifacts/57470faf80770e0300cc6616?target=contents')
 
     def test_download_to_non_blocking_302(self):
         client = MockClient(get_to_file_responses=[302])

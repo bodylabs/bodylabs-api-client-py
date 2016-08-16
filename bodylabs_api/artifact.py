@@ -3,6 +3,10 @@ class Artifact(object):
         self.client = client
         self.update_from(attrs)
 
+    def assert_client_valid(self):
+        if self.client is None:
+            raise ValueError('Can not interact with the server without a valid client')
+
     def update_from(self, attrs):
         self.artifact_id = attrs.pop('artifactId', None)
         self.status = attrs.pop('status', None)
@@ -31,6 +35,32 @@ class Artifact(object):
         print d + "  Processing time (in seconds): {}".format(self.processing_time_in_seconds)
         print d + "  Notification: {}".format(self.notification)
 
+    @property
+    def contents_uri(self):
+        return '/artifacts/{}?target=contents'.format(self.artifact_id)
+
+    def _try_get(self, download=True, output_path=None):
+        import requests
+        from bodylabs_api.exceptions import Processing, ProcessingFailed
+        try:
+            if self.client.verbose:
+                print ".",
+            if download:
+                self.client.get_to_file(self.contents_uri, output_path)
+            else:
+                return self.client.get_redirect_location(self.contents_uri)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                raise Processing()
+            elif e.response.status_code == 410:
+                raise ProcessingFailed()
+            else:
+                raise
+
+    def get_download_uri(self):
+        self.assert_client_valid()
+        return self._try_get(download=False)
+
     def download_to(self, output_path, blocking=True, polling_interval=15, timeout=600):
         '''
         If blocking=True, this will poll every polling_interval seconds until the artifact is ready or definitively fails.
@@ -41,23 +71,11 @@ class Artifact(object):
         '''
         import time
         import requests
-        from bodylabs_api.exceptions import Processing, ProcessingFailed
         from harrison.timer import TimeoutTimer
-        if self.client is None:
-            raise ValueError("Can not interact with the server without a valid client")
-        def _do_download():
-            try:
-                if self.client.verbose:
-                    print ".",
-                self.client.get_to_file('/artifacts/{}?target=contents'.format(self.artifact_id), output_path)
-            except requests.exceptions.HTTPError as e:
-                if e.response.status_code == 404:
-                    raise Processing()
-                elif e.response.status_code == 410:
-                    raise ProcessingFailed()
-                else:
-                    print e.response.json()
-                    raise
+        from bodylabs_api.exceptions import Processing
+
+        self.assert_client_valid()
+
         if self.client.verbose:
             print 'Trying to download artifact {}'.format(self),
         if blocking:
@@ -70,12 +88,11 @@ class Artifact(object):
                 timeout=timeout):
                 while True:
                     try:
-                        _do_download()
+                        self._try_get(output_path=output_path)
                         break
                     except Processing:
                         time.sleep(polling_interval)
-                        continue
         else:
-            _do_download()
+            self._try_get(output_path=output_path)
         if self.client.verbose:
             print 'done'

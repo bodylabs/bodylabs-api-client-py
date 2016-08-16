@@ -33,6 +33,18 @@ class Client(object):
             for block in resp.iter_content(1024):
                 f.write(block)
 
+    def get_redirect_location(self, uri):
+        resp = requests.get(
+            urlparse.urljoin(self.base_uri, uri),
+            headers={'Authorization': self.auth_header},
+            allow_redirects=False
+        )
+        resp.raise_for_status() # This is a no-op if status is 200
+        if not resp.is_redirect:
+            raise requests.exceptions.RequestException(
+                'Expected redirect, got {}'.format(resp.status))
+        return resp.headers['location']
+
     def get(self, uri):
         resp = requests.get(
             urlparse.urljoin(self.base_uri, uri),
