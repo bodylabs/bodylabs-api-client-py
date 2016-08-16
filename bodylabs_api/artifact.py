@@ -3,6 +3,10 @@ class Artifact(object):
         self.client = client
         self.update_from(attrs)
 
+    def assert_client_valid(self):
+        if self.client is None:
+            raise ValueError('Can not interact with the server without a valid client')
+
     def update_from(self, attrs):
         self.artifact_id = attrs.pop('artifactId', None)
         self.status = attrs.pop('status', None)
@@ -54,8 +58,7 @@ class Artifact(object):
                 raise
 
     def get_download_uri(self):
-        if self.client is None:
-            raise ValueError("Can not interact with the server without a valid client")
+        self.assert_client_valid()
         return self._try_get(download=False)
 
     def download_to(self, output_path, blocking=True, polling_interval=15, timeout=600):
@@ -69,8 +72,8 @@ class Artifact(object):
         import time
         from harrison.timer import TimeoutTimer
         from bodylabs_api.exceptions import Processing
-        if self.client is None:
-            raise ValueError("Can not interact with the server without a valid client")
+
+        self.assert_client_valid()
 
         def _do_download():
             try:
