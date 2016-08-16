@@ -70,24 +70,11 @@ class Artifact(object):
         wrong with transport or the api server.
         '''
         import time
+        import requests
         from harrison.timer import TimeoutTimer
         from bodylabs_api.exceptions import Processing
 
         self.assert_client_valid()
-
-        def _do_download():
-            try:
-                if self.client.verbose:
-                    print ".",
-                self.client.get_to_file('/artifacts/{}?target=contents'.format(self.artifact_id), output_path)
-            except requests.exceptions.HTTPError as e:
-                if e.response.status_code == 404:
-                    raise Processing()
-                elif e.response.status_code == 410:
-                    raise ProcessingFailed()
-                else:
-                    print e.response.json()
-                    raise
 
         if self.client.verbose:
             print 'Trying to download artifact {}'.format(self),
