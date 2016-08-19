@@ -52,13 +52,13 @@ def main():
 
     laser_parameters_group.add_argument('--gender', choices=['male', 'female'], type=str, help='gender of the input')
     laser_parameters_group.add_argument('--init', default='A', type=str, help='initial pose')
-    laser_parameters_group.add_argument('--hands', default='open', choices=['open', 'close'], type=str, help='hands pose')
+    laser_parameters_group.add_argument('--hands', default='open', choices=['open', 'closed'], type=str, help='hands pose')
     laser_parameters_group.add_argument('--scan_units', default='m', type=str, help='scan units')
 
     # kinect & multiweep doesn't have any params right now
 
     subparsers['get'].add_argument('--input_type', type=str, choices=['foot', 'kinect', 'laser', 'multisweep'], help='Input type')
-    subparsers['get'].add_argument('what', type=str, choices=['input', 'scan', 'measurements', 'curves', 'alignment', 'normalized_scan'], help='What to download')
+    subparsers['get'].add_argument('what', type=str, choices=['input', 'scan', 'measurements', 'curves', 'alignment', 'alignment_scan_pose', 'normalized_scan'], help='What to download')
     subparsers['get'].add_argument('input_id', type=str, help='Input ID to download from')
     subparsers['get'].add_argument('-o', '--output', default=None, type=str, help='Output path for the result, defaults to current directory')
 
@@ -134,6 +134,9 @@ def main():
             elif args.what == 'normalized_scan':
                 output_path = args.output or 'normalized_scan.obj'
                 artifact = input_obj.normalized_scan
+            elif args.what == 'alignment_scan_pose':
+                output_path = args.output or 'alignment_scan_pose.obj'
+                artifact = input_obj.alignment_scan_pose
             artifact.print_description()
             artifact.download_to(output_path)
 

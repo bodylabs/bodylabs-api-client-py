@@ -19,6 +19,14 @@ Features
 - Foot API specific client
 
 
+Installation or upgrading
+-------------------------
+
+```
+pip install --upgrade git+ssh://git@github.com/bodylabs/bodylabs-api-client-py.git@master#egg=bodylabs_api
+```
+
+
 Examples
 --------
 
