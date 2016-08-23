@@ -17,7 +17,7 @@ AXES = {
 
 SERVERS = {
     'tokyo': 'https://kapok-eng-api-server.bodylabs.com',
-    'us': 'https://bodylabs-eng-api-server.herokuapp.com'
+    'us': 'https://bodylabs-test-api-server.herokuapp.com'
 }
 
 def main():
