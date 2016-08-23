@@ -54,6 +54,9 @@ def main():
     laser_parameters_group.add_argument('--init', default='A', type=str, help='initial pose')
     laser_parameters_group.add_argument('--hands', default='open', choices=['open', 'closed'], type=str, help='hands pose')
     laser_parameters_group.add_argument('--scan_units', default='m', type=str, help='scan units')
+    laser_parameters_group.add_argument('--target_resolution', choices=['low', 'medium', 'high'], default='medium', type=str, help='resolution')
+    laser_parameters_group.add_argument('--target_units', default='cm', type=str, help='output units')
+    laser_parameters_group.add_argument('--triangulate', action='store_true', help='triangulate output')
 
     # kinect & multiweep doesn't have any params right now
 
@@ -99,6 +102,9 @@ def main():
                 'cleanScan': True,
                 'refineHead': True,
                 'removePlatform': False,
+                'targetResolution': args.target_resolution,
+                'targetUnits': args.target_units,
+                'triangulate': args.triangulate,
             },
 
             'kinect': {
