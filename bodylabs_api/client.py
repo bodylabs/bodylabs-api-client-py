@@ -1,7 +1,6 @@
 import os
 import urlparse
 import requests
-from harrison import profile
 from harrison.registered_timer import RegisteredTimer
 
 class Client(object):
@@ -17,18 +16,19 @@ class Client(object):
 
     def post(self, uri, payload):
         print urlparse.urljoin(self.base_uri, uri)
-        resp = requests.post(
-            urlparse.urljoin(self.base_uri, uri),
-            json=payload,
-            headers={'Authorization': self.auth_header}
-        )
-        resp.raise_for_status() # This is a no-op if status is 200
+        with RegisteredTimer('POST request', verbose=True):
+            resp = requests.post(
+                urlparse.urljoin(self.base_uri, uri),
+                json=payload,
+                headers={'Authorization': self.auth_header}
+            )
+            resp.raise_for_status() # This is a no-op if status is 200
         return resp.json()
 
     def get_to_file(self, uri, output_path):
 
 
-        with RegisteredTimer('Get API', verbose=True):
+        with RegisteredTimer('Poll API', verbose=True):
             resp = requests.get(
                 urlparse.urljoin(self.base_uri, uri),
                 headers={'Authorization': self.auth_header},
@@ -72,7 +72,6 @@ class Client(object):
                 raise
         return True
 
-    @profile('Upload')
     def upload(self, path, filename=None, content_type='application/octet-stream'):
         '''
         filename is what we are going to tell the server the file is named. Use it
@@ -90,15 +89,17 @@ class Client(object):
         # Then upload the actual data there
         if self.verbose:
             print 'Uploading file to {}...'.format(self.base_uri + '/' + upload_uri['key']),
-        with open(path, 'rb') as f:
-            resp = requests.put(
-                upload_uri['signedUrl'],
-                data=f.read(), # TODO do we need the read here, or will s3 accept a stream?
-                headers={
-                    'Content-Type': content_type
-                }
-            )
-            resp.raise_for_status()
+
+        with RegisteredTimer('Upload file', verbose=True):
+            with open(path, 'rb') as f:
+                resp = requests.put(
+                    upload_uri['signedUrl'],
+                    data=f.read(), # TODO do we need the read here, or will s3 accept a stream?
+                    headers={
+                        'Content-Type': content_type
+                    }
+                )
+                resp.raise_for_status()
         if self.verbose:
             print 'done'
         return upload_uri['key']
