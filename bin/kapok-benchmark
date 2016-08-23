@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+'''
+Benchmark script for kapok, only support laser for now
+
+'''
+
+import os
+
+AXES = {
+    'x': [1.0, 0.0, 0.0],
+    'y': [0.0, 1.0, 0.0],
+    'z': [0.0, 0.0, 1.0],
+    '-x': [-1.0, 0.0, 0.0],
+    '-y': [0.0, -1.0, 0.0],
+    '-z': [0.0, 0.0, -1.0],
+}
+
+SERVERS = {
+    'tokyo': 'https://kapok-eng-api-server.bodylabs.com',
+    'us': 'https://bodylabs-eng-api-server.herokuapp.com'
+}
+
+def main():
+    import argparse
+    from bodylabs_api.client import Client
+    from bodylabs_api.laser import LaserInput
+
+    from harrison.registered_timer import serialize_registry as serialize_timer_registry
+
+    parser = argparse.ArgumentParser(description='Interact with the Bodylabs foot scan processing API')
+    parser.add_argument('scan_path', type=str, help='Path to the foot scan')
+    parser.add_argument('--region', type=str, default='tokyo', help='API server base URI')
+    parser.add_argument('--access_key', type=str, help='API server access key')
+    parser.add_argument('--secret', type=str, help='API server secret')
+
+
+    args = parser.parse_args()
+    client = Client(SERVERS[args.region], args.access_key, args.secret)
+
+    # Notice the params are hard coded for simplicity. Change those if you want
+    params = {
+        'gender': 'female',
+        'init': 'A',
+        'hands': 'open',
+        'scanUnits': 'm',
+        'up': AXES['y'],
+        'look': AXES['z'],
+        'closeFit': True,
+        'cleanScan': True,
+        'refineHead': True,
+        'removePlatform': False,
+    }
+
+    # 1. upload
+    input_obj = LaserInput.by_uploading_scan(client, args.scan_path, params)
+    input_obj.print_description()
+
+    # 2. get outputs
+    alignment = input_obj.alignment
+    alignment.download_to('./alignment_{}.obj'.format(input_obj.input_id))
+
+
+    print serialize_timer_registry()
+
+if __name__ == '__main__':
+    main()

@@ -55,6 +55,8 @@ class Input(object):
         upload without also creating an input.
         '''
         from datetime import datetime
+        from harrison import Timer
+
         if effective_date is None:
             effective_date = datetime.now()
         if input_type is None:

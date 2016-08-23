@@ -1,6 +1,8 @@
 import os
 import urlparse
 import requests
+from harrison import profile
+from harrison.registered_timer import RegisteredTimer
 
 class Client(object):
     def __init__(self, base_uri, access_key, secret, verbose=True):
@@ -14,6 +16,7 @@ class Client(object):
         return 'SecretPair accessKey={},secret={}'.format(self.access_key, self.secret)
 
     def post(self, uri, payload):
+        print urlparse.urljoin(self.base_uri, uri)
         resp = requests.post(
             urlparse.urljoin(self.base_uri, uri),
             json=payload,
@@ -23,15 +26,20 @@ class Client(object):
         return resp.json()
 
     def get_to_file(self, uri, output_path):
-        resp = requests.get(
-            urlparse.urljoin(self.base_uri, uri),
-            headers={'Authorization': self.auth_header},
-            stream=True
-        )
-        resp.raise_for_status() # This is a no-op if status is 200
-        with open(output_path, 'wb') as f:
-            for block in resp.iter_content(1024):
-                f.write(block)
+
+
+        with RegisteredTimer('Get API', verbose=True):
+            resp = requests.get(
+                urlparse.urljoin(self.base_uri, uri),
+                headers={'Authorization': self.auth_header},
+                stream=True
+            )
+            resp.raise_for_status() # This is a no-op if status is 200
+
+        with RegisteredTimer('Download File', verbose=True):
+            with open(output_path, 'wb') as f:
+                for block in resp.iter_content(1024):
+                    f.write(block)
 
     def get_redirect_location(self, uri):
         resp = requests.get(
@@ -64,6 +72,7 @@ class Client(object):
                 raise
         return True
 
+    @profile('Upload')
     def upload(self, path, filename=None, content_type='application/octet-stream'):
         '''
         filename is what we are going to tell the server the file is named. Use it
