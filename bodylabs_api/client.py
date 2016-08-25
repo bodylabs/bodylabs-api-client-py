@@ -64,6 +64,13 @@ class Client(object):
                 raise
         return True
 
+    def get_upload_uri(self, filename, content_type):
+        return self.post('/uploadUri',
+                         payload={
+                             'filename': filename,
+                             'contentType': content_type,
+                         })
+
     def upload(self, path, filename=None, content_type='application/octet-stream'):
         '''
         filename is what we are going to tell the server the file is named. Use it
@@ -73,11 +80,9 @@ class Client(object):
         if filename is None:
             filename = os.path.basename(path)
         # First get an s3 uri
-        upload_uri = self.post('/uploadUri',
-                               payload={
-                                   'filename': filename,
-                                   'contentType': content_type,
-                               })
+        upload_uri = self.get_upload_uri(
+            filename=filename,
+            content_type=content_type)
         # Then upload the actual data there
         if self.verbose:
             print 'Uploading file to {}...'.format(self.base_uri + '/' + upload_uri['key']),
