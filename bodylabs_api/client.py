@@ -65,6 +65,11 @@ class Client(object):
         return True
 
     def get_upload_uri(self, filename, content_type):
+        '''
+        Returns a dict:
+         - signedUrl
+         - key
+        '''
         return self.post('/uploadUri',
                          payload={
                              'filename': filename,
