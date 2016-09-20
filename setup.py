@@ -28,9 +28,6 @@ setup(
     packages=[
         'bodylabs_api',
     ],
-    scripts=[
-        'bin/bodylabs-red-client',
-    ],
     install_requires=install_requires,
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[

@@ -1,22 +1,11 @@
 bodylabs-api-client-py
 ======================
 
-A basic python client for Body Labs APIs and a command line tool for
-interacting with them.
+This package provides high-level `File` and `Artifact` objects (models) for
+conveniently working with the Body Labs Red API.
 
-- - - - - - - - - - - - -
-
-`bodylabs_api`
-==============
-
-See the Body Labs API documentation to gain a better understanding of
-the behavior of `Inputs` and `Artifacts`, etc.
-
-Features
---------
-
-- Core client for Body Labs APIs, including standard auth modules
-- Foot API specific client
+See the [API documentation][api-docs] to gain a better understanding of the
+API itself as well as the different services available.
 
 
 Installation or upgrading
@@ -30,31 +19,33 @@ pip install --upgrade git+ssh://git@github.com/bodylabs/bodylabs-api-client-py.g
 Examples
 --------
 
-The base client can interact with most Body Labs APIs, but specialized input
-types make it easier to deal with domain specific work.
-
 ```py
 from bodylabs_api.client import Client
-from bodylabs_api.foot import FootInput
+from bodylabs_api.models import File, Artifact
+
 client = Client(base_uri, access_key, secret)
-foot_parameters = {
-    'side': 'right',
-    'up': [0.0, 1.0, 0.0],
-    'look': [0.0, 0.0, 1.0],
-    'scanUnits': 'cm',
+
+scan_file = File.from_local_path('./foot_scan.ply', client)
+
+alignment_payload = {
+    'serviceType': 'FootAlignment',
+    'serviceVersion': 'v1',
+    'artifactType': 'alignment',
+    'parameters': {
+        'side': 'right',
+        'up': [0.0, 1.0, 0.0],
+        'look': [0.0, 0.0, 1.0],
+        'scanUnits': 'cm',
+    },
+    'dependencies': {
+        'scan': {'fileId': scan_file.file_id}
+    }
 }
-input_obj = FootInput.by_uploading_scan(client, 'foot_scan.obj', foot_parameters)
-measurements = input_obj.measurements
-measurements.download_to('measurements.json')
+
+alignment = Artifact(alignment_payload, client).create().download('./alignment.obj')
+# Note: by default, download() blocks on the compute backend to finish the
+# alignment, which may take many minutes
 ```
-
-Example scripts:
-
-    `$ ./bodylabs-red-client --access_key <key> --secret <secret> https://bodylabs-eng-api-server.herokuapp.com upload --input_type foot --side right test_foot_scan.ply`
-    `$ ./bodylabs-red-client --access_key <key> --secret <secret> https://bodylabs-eng-api-server.herokuapp.com get alignment  --input_type foot xxxxxxxxxxxxxxxxxxxxxxxx`
-
-    `$ ./bodylabs-red-client --access_key <key> --secret <secret> https://bodylabs-eng-api-server.herokuapp.com upload --input_type laser --side male test.obj`
-    `$ ./bodylabs-red-client --access_key <key> --secret <secret> https://bodylabs-eng-api-server.herokuapp.com get alignment --input_type laser xxxxxxxxxxxxxxxxxxxxxxxx`
 
 
 Development
