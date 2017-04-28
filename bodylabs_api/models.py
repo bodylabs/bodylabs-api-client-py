@@ -28,7 +28,7 @@ class Model(object):
 
     @property
     def download_uri(self):
-        return '{}/{}'.format(self.metadata_uri, 'download')
+        return '{}/download'.format(self.metadata_uri)
 
     @property
     def status(self):
@@ -82,11 +82,12 @@ class Model(object):
 
         return self
 
-    def download(self, output_path, blocking=True, **kwargs):
+    def download(self, output_path, blocking=True, override_download_uri=None, **kwargs):
         if blocking:
             self.refresh_until_ready(**kwargs)
 
-        self.client.download(self.download_uri, output_path)
+        download_uri = override_download_uri or self.download_uri
+        self.client.download(download_uri, output_path)
         self.download_path = output_path
         return self
 
@@ -120,6 +121,30 @@ class Artifact(Model):
         return self.raw_json.get('dependencies')
 
 
+class MultiComponentArtifact(Artifact):
+
+    @property
+    def download_uri(self):
+        raise NotImplementedError(
+            '{} has no single download_uri; use download_component instead'.format(self.__class__.__name__))
+
+    @property
+    def components(self):
+        return self.raw_json.get('components')
+
+    def get_component_uri(self, component, validate=False):
+        uri = '{}/components/{}'.format(self.metadata_uri, component)
+        if validate:
+            components = self.refresh().components or []
+            if component not in components:
+                raise ValueError('{} has no component {}'.format(self, component))
+        return uri
+
+    def download_component(self, component, output_path, blocking=True, **kwargs):
+        uri = self.get_component_uri(component, validate=True)
+        return self.download(output_path, blocking=blocking, override_download_uri=uri, **kwargs)
+
+
 def _infer_file_type(filepath):
     from os.path import splitext
     _, ext = splitext(filepath)
@@ -150,8 +175,7 @@ class File(Model):
     @property
     def s3_version_id(self):
         '''
-        Only exists between file.upload and file.file.finalize calls; otherwise
-        None
+        Only exists between file.upload and file.finalize calls; otherwise None
         '''
         return self.raw_json.get('s3VersionId')
 

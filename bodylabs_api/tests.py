@@ -5,7 +5,7 @@ from scratch_dir import ScratchDirMixin
 
 from bodylabs_api.client import Client
 from bodylabs_api.exceptions import HttpError
-from bodylabs_api.models import File, Artifact
+from bodylabs_api.models import File, Artifact, MultiComponentArtifact
 
 client = Client('http://base_uri', 'access_key', 'secret', verbose=False)
 
@@ -148,7 +148,7 @@ class TestArtifact(unittest.TestCase):
             'artifactId': '123abc',
             'serviceType': 'SomeService',
             'artifactType': 'someArtifact',
-            'serviceVersion': 'v23'
+            'serviceVersion': 'v23',
         })
 
         artifact = Artifact(payload, client).create()
@@ -159,6 +159,56 @@ class TestArtifact(unittest.TestCase):
         mock_post.assert_called_once_with('http://base_uri/artifacts', json=payload, **v1_auth)
 
 
+class TestMultiComponentArtifact(ScratchDirMixin, unittest.TestCase):
+
+    @mock.patch('requests.post')
+    def test_multi_component_artifact_create(self, mock_post):
+        payload = {'format': 'is only validated by actual API'}
+        mock_post.return_value = MockResponse(202, {
+            'artifactId': '123abc',
+            'serviceType': 'SomeService',
+            'serviceVersion': 'v23',
+            'components': ['outputOne', 'outputTwo'],
+        })
+
+        artifact = MultiComponentArtifact(payload, client).create()
+        self.assertEqual(artifact.artifact_id, '123abc')
+        self.assertEqual(artifact.service_type, 'SomeService')
+        self.assertEqual(artifact.service_version, 'v23')
+        self.assertEqual(artifact.components, ['outputOne', 'outputTwo'])
+        mock_post.assert_called_once_with('http://base_uri/artifacts', json=payload, **v1_auth)
+
+    @mock.patch('requests.get')
+    def test_multi_component_artifact_download(self, mock_get):
+        response_sequence = [
+            # refreshes until ready
+            MockResponse(200, {'artifactId': '123abc', 'status': 'pending', 'components': ['outputOne']}),
+            MockResponse(200, {'artifactId': '123abc', 'status': 'pending', 'components': ['outputOne']}),
+            MockResponse(200, {'artifactId': '123abc', 'status': 'ready', 'components': ['outputOne']}),
+            # the actual download request
+            MockResponse(200, {})
+        ]
+        mock_get.side_effect = response_sequence
+
+        download_path = self.get_tmp_path('test_mca_download')
+        artifact = MultiComponentArtifact.find_by_id('123abc', client)
+        artifact.download_component('outputOne', download_path, polling_interval=0, timeout=1)
+
+        with open(download_path, 'r') as open_file:
+            self.assertEqual(open_file.read(), 'fake contents')
+
+        self.assertEqual(mock_get.call_count, 4)
+        # polling calls
+        self.assertEqual(mock_get.call_args_list[0], (('http://base_uri/artifacts/123abc',), v1_auth))
+        self.assertEqual(mock_get.call_args_list[1], (('http://base_uri/artifacts/123abc',), v1_auth))
+        self.assertEqual(mock_get.call_args_list[2], (('http://base_uri/artifacts/123abc',), v1_auth))
+        # download call
+        exp_kwargs = {'stream': True}
+        exp_kwargs.update(v1_auth)
+        self.assertEqual(
+            mock_get.call_args_list[3],
+            (('http://base_uri/artifacts/123abc/components/outputOne',), exp_kwargs)
+        )
 
 if __name__ == '__main__':
     unittest.main()

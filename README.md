@@ -2,10 +2,10 @@ bodylabs-api-client-py
 ======================
 
 This package provides high-level `File` and `Artifact` objects (models) for
-conveniently working with the Body Labs Red API.
+conveniently working with the Body Labs Red API or Body Labs Mocap API.
 
-See the [API documentation][api-docs] to gain a better understanding of the
-API itself as well as the different services available.
+For Red, see the [Red API documentation][api-docs] to gain a better
+understanding of the API itself as well as the different services available.
 
 
 Installation or upgrading
@@ -18,6 +18,8 @@ pip install --upgrade git+ssh://git@github.com/bodylabs/bodylabs-api-client-py.g
 
 Examples
 --------
+
+To use the Red API:
 
 ```py
 from bodylabs_api.client import Client
@@ -47,6 +49,10 @@ alignment = Artifact(alignment_payload, client).create().download('./alignment.o
 # alignment, which may take many minutes
 ```
 
+To use Mocap API, simply import `MultiComponentArtifact` instead of `Artifact`,
+omit `artifactType` from the payload (and adjust the remaining four fields as
+appropriate for the service), and call method
+`download_component(component_name, save_path)` instead of `download(path)`.
 
 Development
 -----------
