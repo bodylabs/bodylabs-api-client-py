@@ -82,12 +82,11 @@ class Model(object):
 
         return self
 
-    def download(self, output_path, blocking=True, override_download_uri=None, **kwargs):
+    def download(self, output_path, blocking=True, **kwargs):
         if blocking:
             self.refresh_until_ready(**kwargs)
 
-        download_uri = override_download_uri or self.download_uri
-        self.client.download(download_uri, output_path)
+        self.client.download(self.download_uri, output_path)
         self.download_path = output_path
         return self
 
@@ -123,6 +122,10 @@ class Artifact(Model):
 
 class MultiComponentArtifact(Artifact):
 
+    def __init__(self, raw_json, client):
+        super(self.__class__, self).__init__(raw_json, client)
+        self.downloaded_components = {}
+
     @property
     def download_uri(self):
         raise NotImplementedError(
@@ -130,19 +133,23 @@ class MultiComponentArtifact(Artifact):
 
     @property
     def components(self):
-        return self.raw_json.get('components')
+        return self.raw_json.get('components', [])
 
     def get_component_uri(self, component, validate=False):
         uri = '{}/components/{}'.format(self.metadata_uri, component)
         if validate:
-            components = self.refresh().components or []
-            if component not in components:
+            if component not in self.refresh().components:
                 raise ValueError('{} has no component {}'.format(self, component))
         return uri
 
     def download_component(self, component, output_path, blocking=True, **kwargs):
-        uri = self.get_component_uri(component, validate=True)
-        return self.download(output_path, blocking=blocking, override_download_uri=uri, **kwargs)
+        component_uri = self.get_component_uri(component, validate=True) # fail early
+        if blocking:
+            self.refresh_until_ready(**kwargs)
+
+        self.client.download(component_uri, output_path)
+        self.downloaded_components[component] = output_path
+        return self
 
 
 def _infer_file_type(filepath):

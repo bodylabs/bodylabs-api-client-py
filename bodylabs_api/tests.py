@@ -193,6 +193,7 @@ class TestMultiComponentArtifact(ScratchDirMixin, unittest.TestCase):
         download_path = self.get_tmp_path('test_mca_download')
         artifact = MultiComponentArtifact.find_by_id('123abc', client)
         artifact.download_component('outputOne', download_path, polling_interval=0, timeout=1)
+        self.assertEqual(artifact.downloaded_components['outputOne'], download_path)
 
         with open(download_path, 'r') as open_file:
             self.assertEqual(open_file.read(), 'fake contents')
